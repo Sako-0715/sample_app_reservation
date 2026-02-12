@@ -15,7 +15,7 @@ class ShopInfoView extends StatelessWidget {
           const SizedBox(height: 16),
           // スライダー画像を配置
           const ImageSlider(),
-
+          // テスト
           // 画像下の情報
           Padding(
             padding: const EdgeInsets.all(16.0),
