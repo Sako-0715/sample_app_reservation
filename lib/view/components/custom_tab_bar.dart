@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
   const CustomTabBar({super.key});
 
+  static const List<String> tempTabLabels = ['店舗情報', 'クーポン・メニュー'];
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -47,7 +49,10 @@ class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
               children: [
                 Icon(Icons.confirmation_number, size: 18),
                 SizedBox(width: 8),
-                Text('クーポン', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  'クーポン・メニュー',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ],
             ),
           ),
