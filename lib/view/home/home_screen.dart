@@ -18,7 +18,8 @@ class HomeScreen extends StatelessWidget {
           children: [
             // 左タブ店舗情報
             ShopInfoView(),
-            // 右タブ（まだ未作成ならとりあえずCenterでOK）
+
+            // 右タブクーポンタブ（まだ未作成ならとりあえずCenterでOK）
             Center(child: Text('お得なクーポンやメニュー一覧がここに入ります')),
           ],
         ),
