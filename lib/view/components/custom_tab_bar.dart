@@ -1,32 +1,30 @@
 import 'package:flutter/material.dart';
 
+/// 店舗情報とクーポン・メニューを切り替える、角丸カプセルデザインのカスタムタブバー。
 class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
   const CustomTabBar({super.key});
+
+  /// タブに表示するラベルのリスト
+  static const List<String> tempTabLabels = ['店舗情報', 'クーポン・メニュー'];
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      // タブ全体の背景色と角丸の設定
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        // タブ背景色
         color: Colors.grey[200],
-        // 角丸
         borderRadius: BorderRadius.circular(50),
       ),
       child: TabBar(
-        // 選択中のタブのデザイン
+        // 選択中のタブをオレンジ色のカプセルで覆うデザイン設定
         indicator: BoxDecoration(
-          // 選択中の角丸
           borderRadius: BorderRadius.circular(50),
-          // 選択中の背景色
           color: Colors.orange[700],
         ),
         indicatorSize: TabBarIndicatorSize.tab,
-        // 選択中の文字・アイコン色
         labelColor: Colors.white,
-        // 未選択時の文字・アイコン色
         unselectedLabelColor: Colors.grey[600],
-        // 境界線や影を消す設定
         dividerColor: Colors.transparent,
         tabs: const [
           Tab(
@@ -47,7 +45,10 @@ class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
               children: [
                 Icon(Icons.confirmation_number, size: 18),
                 SizedBox(width: 8),
-                Text('クーポン', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  'クーポン・メニュー',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ],
             ),
           ),
@@ -56,7 +57,7 @@ class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  // Containerのmargin分（上下8pxずつ=16px）を高さに加算
+  // コンテナのマージン（上下8pxずつ）を考慮した高さの定義
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight + 16);
 }
