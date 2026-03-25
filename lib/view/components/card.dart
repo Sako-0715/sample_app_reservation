@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 
 /// カードアイテムのデータモデル
+/// title: タイトル
+/// subtitle: サブタイトル（オプション）
+/// description: 説明文（オプション）
+/// imageUrl: ネット上の画像URL（オプション）
+/// assetPath: アセット画像のパス（オプション）
+/// onTap: タップ時のコールバック（オプション）
 class CardItem {
   final String title;
   final String? subtitle;
@@ -19,8 +25,8 @@ class CardItem {
   });
 }
 
-/// 横スライド可能なカードカルーセル
-class CardCarousel extends StatelessWidget {
+/// 横スライド可能なカードカルーセル（チラ見えなし・ドットインジケーター付き）
+class CardCarousel extends StatefulWidget {
   final List<CardItem> items;
   final double cardHeight;
   final double cardWidth;
@@ -28,30 +34,79 @@ class CardCarousel extends StatelessWidget {
   const CardCarousel({
     super.key,
     required this.items,
-    this.cardHeight = 220,
-    this.cardWidth = 320,
+    this.cardHeight = 200,
+    this.cardWidth = double.infinity,
   });
 
   @override
+  State<CardCarousel> createState() => _CardCarouselState();
+}
+
+class _CardCarouselState extends State<CardCarousel> {
+  late PageController _pageController;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // viewportFractionを1.0にすることで、隣のカードが見えない全幅表示になります
+    _pageController = PageController(viewportFraction: 1.0);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: cardHeight,
-      child: PageView.builder(
-        controller: PageController(
-          viewportFraction: 0.85, // カードの85%を表示して次のカードを見せる
+    return Column(
+      children: [
+        SizedBox(
+          height: widget.cardHeight,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: widget.items.length,
+            onPageChanged: (int page) {
+              setState(() {
+                _currentPage = page;
+              });
+            },
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ImageTextCard(
+                  item: widget.items[index],
+                  width: widget.cardWidth,
+                  height: widget.cardHeight,
+                ),
+              );
+            },
+          ),
         ),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: ImageTextCard(
-              item: items[index],
-              width: cardWidth,
-              height: cardHeight,
+        if (widget.items.length > 1) ...[
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              widget.items.length,
+              (index) => Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color:
+                      _currentPage == index
+                          ? Colors.black
+                          : Colors.grey.withOpacity(0.3),
+                ),
+              ),
             ),
-          );
-        },
-      ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -76,170 +131,107 @@ class ImageTextCard extends StatelessWidget {
       child: Container(
         width: width,
         height: height,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.withOpacity(0.2)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 画像セクション
-              _buildImageSection(),
-              // テキストセクション
-              _buildTextSection(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// 画像セクションを構築
-  Widget _buildImageSection() {
-    return Expanded(
-      flex: 3,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          _buildImage(),
-          // グラデーションオーバーレイ（画像下部を暗く）
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 60,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black.withOpacity(0.3)],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// テキストセクションを構築
-  Widget _buildTextSection() {
-    return Expanded(
-      flex: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // タイトル
-                Text(
-                  item.title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                // サブタイトル
-                if (item.subtitle != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    item.subtitle!,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
+            // 上部：タイトルセクション
+            Text(
+              item.title,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            // 説明文
-            if (item.description != null)
+            if (item.subtitle != null) ...[
+              const SizedBox(height: 2),
               Text(
-                item.description!,
-                style: TextStyle(
+                item.subtitle!,
+                style: const TextStyle(
                   fontSize: 13,
-                  color: Colors.grey[700],
-                  height: 1.4,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple,
                 ),
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+            ],
+            const SizedBox(height: 8),
+            // 下部：左に画像、右に説明文の横並び
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: SizedBox(
+                      width: 140,
+                      height: 140,
+                      child: _buildImage(),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child:
+                        item.description != null
+                            ? Text(
+                              item.description!,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[800],
+                                height: 1.5,
+                              ),
+                              maxLines: 5,
+                              overflow: TextOverflow.ellipsis,
+                            )
+                            : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  /// 画像を構築
   Widget _buildImage() {
     if (item.imageUrl != null) {
-      // ネットワーク画像
       return Image.network(
         item.imageUrl!,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildPlaceholder();
-        },
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: CircularProgressIndicator(
-              value:
-                  loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
-            ),
-          );
-        },
+        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
       );
     } else if (item.assetPath != null) {
-      // アセット画像
       return Image.asset(
         item.assetPath!,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildPlaceholder();
-        },
+        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
       );
-    } else {
-      // プレースホルダー
-      return _buildPlaceholder();
     }
+    return _buildPlaceholder();
   }
 
-  /// プレースホルダー画像を構築
   Widget _buildPlaceholder() {
     return Container(
-      color: Colors.grey[300],
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image_outlined, size: 48, color: Colors.grey[500]),
-            const SizedBox(height: 8),
-            Text(
-              'No Image',
-              style: TextStyle(color: Colors.grey[500], fontSize: 12),
-            ),
-          ],
-        ),
+      color: Colors.grey[200],
+      child: const Center(
+        child: Icon(Icons.image_outlined, color: Colors.grey),
       ),
     );
   }
@@ -295,12 +287,7 @@ class CompactCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: Row(
             children: [
-              // 画像セクション（左側）
-              SizedBox(
-                width: height, // 正方形
-                child: _buildImage(),
-              ),
-              // テキストセクション（右側）
+              SizedBox(width: height, child: _buildImage()),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -346,7 +333,6 @@ class CompactCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // 矢印アイコン
               Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: Icon(
@@ -362,30 +348,23 @@ class CompactCard extends StatelessWidget {
     );
   }
 
-  /// 画像を構築
   Widget _buildImage() {
     if (item.imageUrl != null) {
       return Image.network(
         item.imageUrl!,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildPlaceholder();
-        },
+        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
       );
     } else if (item.assetPath != null) {
       return Image.asset(
         item.assetPath!,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildPlaceholder();
-        },
+        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
       );
-    } else {
-      return _buildPlaceholder();
     }
+    return _buildPlaceholder();
   }
 
-  /// プレースホルダー画像を構築
   Widget _buildPlaceholder() {
     return Container(
       color: Colors.grey[300],

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sample_app_reservation/view/components/image_slider.dart';
 import 'package:sample_app_reservation/view/components/card.dart';
 import '../../viewmodel/shop_info_view_model.dart';
+import '../../view/components/static_map_view.dart';
 
 class ShopInfoView extends StatelessWidget {
   const ShopInfoView({super.key});
@@ -29,14 +30,15 @@ class ShopInfoView extends StatelessWidget {
     }
 
     // PickupModel を CardItem に変換（タイトルのみ表示）
-    final List<CardItem> pickupItems =
+    final List<CardItem> cardItems =
         viewModel.pickups.map((pickup) {
           return CardItem(
             title: pickup.title,
-            description: null, // ここをnullにすることで、contentの内容を表示させない
+            description: pickup.displayDescription,
             imageUrl: pickup.imageUrl,
             onTap: () {
-              // タップ時の処理　遷移処理をここで書く
+              // 記事詳細画面へ遷移する処理
+              print("${pickup.title} がタップされました");
             },
           );
         }).toList();
@@ -47,7 +49,7 @@ class ShopInfoView extends StatelessWidget {
         children: [
           const SizedBox(height: 16),
           // 1. メインのスライダー
-          ImageSlider(imageUrls: shop.mainImages),
+          ImageSlider(imageUrls: shop.mainImages, height: 165),
 
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -62,13 +64,10 @@ class ShopInfoView extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 // 特徴カードカルーセル（タイトルのみのカードを表示）
-                if (pickupItems.isNotEmpty)
-                  CardCarousel(
-                    items: pickupItems,
-                    cardHeight: 200, // タイトルだけなので高さを少し抑えても綺麗です
-                  )
+                if (cardItems.isNotEmpty)
+                  CardCarousel(items: cardItems, cardHeight: 200)
                 else
-                  ImageSlider(imageUrls: shop.featureImages, height: 180),
+                  ImageSlider(imageUrls: shop.featureImages, height: 165),
 
                 const SizedBox(height: 12),
 
@@ -88,13 +87,16 @@ class ShopInfoView extends StatelessWidget {
 
                 // 基本情報セクション
                 const Text(
-                  '基本情報',
+                  '店舗アクセス',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
-                buildDetailRow(Icons.location_on, '住所', shop.address),
-                buildDetailRow(Icons.access_time, '営業時間', shop.openingHours),
-                buildDetailRow(Icons.phone, '電話番号', shop.phone),
+                const SizedBox(height: 16), // タイトルとの隙間
+                // 2. シンプルに地図を表示（高さだけ指定）
+                StaticMapView(
+                  latitude: 33.58149007851905,
+                  longitude: 130.32334324968244,
+                  height: 400,
+                ),
               ],
             ),
           ),

@@ -21,17 +21,16 @@ class ShopInfoApi {
     }
   }
 
-  /// ピックアップ情報を取得（新設）
   /// ピックアップ情報を取得
-  Future<dynamic> fetchPickups() async {
+  Future<List<dynamic>> fetchPickups() async {
     final response = await http.get(
       Uri.parse('$baseUrl/pickup'),
       headers: {'X-MICROCMS-API-KEY': apiKey},
     );
 
     if (response.statusCode == 200) {
-      // JSONをデコードしてそのまま返す（MapかListかはViewModelで判断する）
-      return json.decode(response.body);
+      final data = json.decode(response.body);
+      return data['contents'] as List<dynamic>;
     } else {
       throw Exception('ピックアップ通信失敗');
     }
